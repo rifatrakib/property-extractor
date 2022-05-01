@@ -26,10 +26,18 @@ class PropertySpider(scrapy.Spider):
             next_url = self.second_url
             yield response.follow(next_url, callback=self.parse)
         else:
+            scraped_data = response.json()
+            if scraped_data:
+                for item in scraped_data:
+                    yield item
+            
             self.query_template['offset'] += 100
-            query = '?$query='
-            for key, value in self.query_template.items():
-                query = query + f'{key} {value} '
-            next_url = self.api_route + query
-            print('--> next url', next_url)
-            yield response.follow(next_url, callback=self.parse)
+            if self.query_template['offset'] < self.number_of_documents:
+                query = '?$query='
+                for key, value in self.query_template.items():
+                    query = query + f'{key} {value} '
+                next_url = self.api_route + query
+                print('--> next url', next_url)
+                yield response.follow(next_url, callback=self.parse)
+            else:
+                print('Scraping finished')
