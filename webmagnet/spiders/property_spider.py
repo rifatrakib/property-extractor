@@ -7,19 +7,9 @@ class PropertySpider(scrapy.Spider):
     name = 'property_spider'
     allowed_domains = ['data.ct.gov']
     api_route = 'https://data.ct.gov/api/id/5mzw-sjtu.json'
-    query_template = {
-        'select': '*, :id',
-        'order by': '`listyear` desc, `daterecorded` asc',
-        'offset': 0,
-        'limit': 100,
-    }
-    number_of_documents = 0
     start_urls = ['https://data.ct.gov/api/id/5mzw-sjtu.json?$query=select%20*,%20:id%20order%20by%20%60listyear%60%20desc,%20%60daterecorded%60%20asc%20%20|%3E%20select%20count(*)%20as%20__count_alias__&$$read_from_nbe=true&$$version=2.1']
-    second_url = api_route + '?$query='
-    for key, value in query_template.items():
-        second_url = second_url + f'{key} {value} '
     
-    def map_itemloader(self, data):
+    def property_itemloader(self, data):
         item_data = ItemLoader(item=PropertyItem(), selector=data)
         item_data.add_value('id', data[':id'])
         item_data.add_value('serial_number', data.get('serialnumber', None))
@@ -40,23 +30,14 @@ class PropertySpider(scrapy.Spider):
         return item_data
     
     def parse(self, response):
-        if response.request.url == self.start_urls[0]:
-            self.number_of_documents = int(response.json()[0]['__count_alias__'])
-            next_url = self.second_url
-            yield response.follow(next_url, callback=self.parse)
-        else:
-            scraped_data = response.json()
-            if scraped_data:
-                for item in scraped_data:
-                    item_data = self.map_itemloader(item)
-                    yield item_data.load_item()
-            
-            self.query_template['offset'] += 100
-            if self.query_template['offset'] < self.number_of_documents:
-                query = '?$query='
-                for key, value in self.query_template.items():
-                    query = query + f'{key} {value} '
-                next_url = self.api_route + query
-                yield response.follow(next_url, callback=self.parse)
-            else:
-                return
+        number_of_documents = int(response.json()[0]['__count_alias__'])
+        for offset in range(0, number_of_documents, 100):
+            query = f'select *, :id order by `listyear` desc, `daterecorded` asc offset {offset} limit 100'
+            next_url = f'{self.api_route}?$query={query}'
+            yield response.follow(next_url, callback=self.property_parser)
+    
+    def property_parser(self, response):
+        scraped_data = response.json()
+        for item in scraped_data:
+            item_data = self.property_itemloader(item)
+            yield item_data.load_item()
