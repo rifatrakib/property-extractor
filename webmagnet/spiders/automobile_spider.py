@@ -1,4 +1,6 @@
 import scrapy
+from scrapy.loader import ItemLoader
+from webmagnet.items import AutomobileItem
 
 
 class AutomobileSpider(scrapy.Spider):
@@ -6,6 +8,22 @@ class AutomobileSpider(scrapy.Spider):
     allowed_domains = ['data.ct.gov']
     api_route = 'https://data.ct.gov/api/id/apne-w8c6.json'
     start_urls = ['https://data.ct.gov/api/id/apne-w8c6.json?$query=select *, :id  |> select count(*) as __count_alias__&$$read_from_nbe=true&$$version=2.1']
+    
+    def automobile_itemloader(self, data):
+        item_data = ItemLoader(item=AutomobileItem(), selector=data)
+        
+        item_data.add_value('id', data[':id'])
+        item_data.add_value('business_name', data.get('business_name', None))
+        item_data.add_value('business_address', data.get('business_address', None))
+        item_data.add_value('city', data.get('city', None))
+        item_data.add_value('state', data.get('state', None))
+        item_data.add_value('zip_code', data.get('zip_code', None))
+        item_data.add_value('license_num', data.get('license_num', None))
+        item_data.add_value('license_type', data.get('license_type', None))
+        item_data.add_value('license_expiration', data.get('license_expiration', None))
+        item_data.add_value('geo_coordinates', data.get('geocoded_column', None))
+        
+        return item_data
     
     def parse(self, response):
         number_of_documents = int(response.json()[0]['__count_alias__'])
@@ -17,15 +35,5 @@ class AutomobileSpider(scrapy.Spider):
     def automobile_parser(self, response):
         scraped_data = response.json()
         for item in scraped_data:
-            yield {
-                'id': item.get(':id', None),
-                'business_address': item.get('business_address', None),
-                'business_name': item.get('business_name', None),
-                'city': item.get('city', None),
-                'geo_location': item.get('geocoded_column', None),
-                'license_expiration': item.get('license_expiration', None),
-                'license_num': item.get('license_num', None),
-                'license_type': item.get('license_type', None),
-                'state': item.get('state', None),
-                'zip_code': item.get('zip_code', None),
-            }
+            item_data = self.automobile_itemloader(item)
+            yield item_data.load_item()

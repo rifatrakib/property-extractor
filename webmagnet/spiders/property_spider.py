@@ -11,6 +11,7 @@ class PropertySpider(scrapy.Spider):
     
     def property_itemloader(self, data):
         item_data = ItemLoader(item=PropertyItem(), selector=data)
+        
         item_data.add_value('id', data[':id'])
         item_data.add_value('serial_number', data.get('serialnumber', None))
         item_data.add_value('list_year', data.get('listyear', None))

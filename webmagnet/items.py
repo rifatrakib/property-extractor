@@ -1,6 +1,11 @@
 import scrapy
 from datetime import datetime
+from nltk.tokenize import word_tokenize
 from itemloaders.processors import TakeFirst, MapCompose
+
+replace_map = {
+    'RT': 'Route',
+}
 
 
 def replace_underscores(item):
@@ -28,6 +33,17 @@ def format_capitalized_string(item):
 def format_timestamp(item):
     timestamp = item.strip()
     return datetime.fromisoformat(timestamp).isoformat()
+
+
+def replace_shorthands(item):
+    processed_item = []
+    for word in word_tokenize(item):
+        if word in replace_map:
+            processed_item.append(replace_map[word])
+        else:
+            processed_item.append(word)
+    
+    return ' '.join(processed_item)
 
 
 class PropertyItem(scrapy.Item):
@@ -85,6 +101,43 @@ class PropertyItem(scrapy.Item):
     )
     opm_remarks = scrapy.Field(
         input_processor=MapCompose(format_capitalized_string),
+        output_processor=TakeFirst()
+    )
+    geo_coordinates = scrapy.Field()
+
+
+class AutomobileItem(scrapy.Item):
+    id = scrapy.Field(
+        input_processor=MapCompose(replace_underscores),
+        output_processor=TakeFirst()
+    )
+    business_name = scrapy.Field(
+        input_processor=MapCompose(format_titlecase_string),
+        output_processor=TakeFirst()
+    )
+    business_address = scrapy.Field(
+        input_processor=MapCompose(replace_shorthands, format_titlecase_string),
+        output_processor=TakeFirst()
+    )
+    city = scrapy.Field(
+        input_processor=MapCompose(format_titlecase_string),
+        output_processor=TakeFirst()
+    )
+    state = scrapy.Field(
+        input_processor=MapCompose(format_titlecase_string),
+        output_processor=TakeFirst()
+    )
+    zip_code = scrapy.Field(
+        input_processor=MapCompose(str.strip),
+        output_processor=TakeFirst()
+    )
+    license_num = scrapy.Field()
+    license_type = scrapy.Field(
+        input_processor=MapCompose(format_titlecase_string),
+        output_processor=TakeFirst()
+    )
+    license_expiration = scrapy.Field(
+        input_processor=MapCompose(format_timestamp),
         output_processor=TakeFirst()
     )
     geo_coordinates = scrapy.Field()

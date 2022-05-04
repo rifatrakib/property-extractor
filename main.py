@@ -11,8 +11,16 @@ def invoke_spider(spider_name, **kwargs):
 
 
 if __name__ == '__main__':
-    parameters = {
-        'o': 'data/property-sales-data.jl'
+    spider_parameters = {
+        'property_spider': {
+            'output': {'O': 'data/property-sales-data.jl'},
+            'crawl': False,
+        },
+        'automobile_spider': {
+            'output': {'O': 'data/automobile-repair-dealer-data.jl'},
+            'crawl': False,
+        }
     }
-    spider_name = 'property_spider'
-    invoke_spider(spider_name, **parameters)
+    for spider, parameters in spider_parameters.items():
+        if parameters['crawl']:
+            invoke_spider(spider, **parameters['output'])
