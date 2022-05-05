@@ -1,13 +1,10 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-
-# useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+import json
 
 
-class WebmagnetPipeline:
+class JSONLinesPipeline:
     def process_item(self, item, spider):
-        return item
+        formatted_spider_name = spider.name.replace('_', '-')
+        data = json.dumps(dict(item)) + '\n'
+        with open(f'data/{formatted_spider_name}-data.jl', 'a') as data_file:
+            data_file.write(data)
