@@ -5,11 +5,24 @@ import json
 
 
 class JSONLinesPipeline:
-    def process_item(self, item, spider):
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        crawler.signals.connect(pipeline.spider_opened, signals.spider_opened)
+        crawler.signals.connect(pipeline.spider_closed, signals.spider_closed)
+        return pipeline
+    
+    def spider_opened(self, spider):
         formatted_spider_name = spider.name.replace('_', '-').replace('-spider', '')
-        data = json.dumps(ItemAdapter(item).asdict()) + '\n'
-        with open(f'data/jsonline/{formatted_spider_name}-data.jl', 'a') as data_file:
-            data_file.write(data)
+        self.file = open(f'data/jsonline/{formatted_spider_name}-data.jl', 'w')
+    
+    def spider_closed(self, spider):
+        self.file.close()
+    
+    def process_item(self, item, spider):
+        line = json.dumps(ItemAdapter(item).asdict()) + '\n'
+        self.file.write(line)
+        return item
 
 
 class CSVPipeline:
@@ -55,6 +68,6 @@ class JSONPipeline:
         self.file.close()
     
     def process_item(self, item, spider):
-        line = json.dumps(ItemAdapter(item).asdict(), indent=4) + '\n'
+        line = json.dumps(ItemAdapter(item).asdict(), indent=4) + ',\n'
         self.file.write(line)
         return item
