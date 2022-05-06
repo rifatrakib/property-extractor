@@ -64,6 +64,7 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'webmagnet.pipelines.CSVPipeline': 200,
+    'webmagnet.pipelines.JSONPipeline': 200,
     'webmagnet.pipelines.JSONLinesPipeline': 300,
 }
 

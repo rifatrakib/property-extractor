@@ -131,7 +131,7 @@ class AutomobileItem(scrapy.Item):
         input_processor=MapCompose(str.strip),
         output_processor=TakeFirst()
     )
-    license_num = scrapy.Field()
+    license_num = scrapy.Field(output_processor=TakeFirst())
     license_type = scrapy.Field(
         input_processor=MapCompose(format_titlecase_string),
         output_processor=TakeFirst()
