@@ -74,7 +74,7 @@ class BusinessSpider(scrapy.Spider):
     
     def parse(self, response):
         number_of_documents = int(response.json()[0]['__count_alias__'])
-        for offset in range(0, 1000, 100):
+        for offset in range(0, number_of_documents, 100):
             query = f'select *, :id order by `id` asc offset {offset} limit 100'
             next_url = f'{self.api_route}?$query={query}'
             yield response.follow(next_url, callback=self.business_parser)
