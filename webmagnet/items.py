@@ -30,6 +30,11 @@ def format_capitalized_string(item):
     return item.strip().capitalize()
 
 
+def fix_timestamp_string(item):
+    timestamp = item.strip()[:-1].replace(' ', 'T')
+    return datetime.fromisoformat(timestamp).isoformat()
+
+
 def format_timestamp(item):
     timestamp = item.strip()
     return datetime.fromisoformat(timestamp).isoformat()
@@ -277,19 +282,19 @@ class BusinessItem(scrapy.Item):
         output_processor=TakeFirst()
     )
     woman_owned_organization = scrapy.Field(
-        input_processor=MapCompose(str.strip),
+        input_processor=MapCompose(str, str.strip),
         output_processor=TakeFirst()
     )
     veteran_owned_organization = scrapy.Field(
-        input_processor=MapCompose(str.strip),
+        input_processor=MapCompose(str, str.strip),
         output_processor=TakeFirst()
     )
     minority_owned_organization = scrapy.Field(
-        input_processor=MapCompose(str.strip),
+        input_processor=MapCompose(str, str.strip),
         output_processor=TakeFirst()
     )
     disable_person_owned_organization = scrapy.Field(
-        input_processor=MapCompose(str.strip),
+        input_processor=MapCompose(str, str.strip),
         output_processor=TakeFirst()
     )
     category_survey_email_address = scrapy.Field(
@@ -365,7 +370,7 @@ class BusinessItem(scrapy.Item):
         output_processor=TakeFirst()
     )
     created_on = scrapy.Field(
-        input_processor=MapCompose(format_timestamp),
+        input_processor=MapCompose(fix_timestamp_string),
         output_processor=TakeFirst()
     )
     total_authorized_shares = scrapy.Field(

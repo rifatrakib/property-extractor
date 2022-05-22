@@ -9,9 +9,9 @@ def invoke_spider(spider_name):
 
 if __name__ == '__main__':
     spider_parameters = {
-        'property_spider': False,
-        'automobile_spider': False,
-        'business_spider': False,
+        'property_spider': True,
+        'automobile_spider': True,
+        'business_spider': True,
     }
     for spider, crawl in spider_parameters.items():
         if crawl:
